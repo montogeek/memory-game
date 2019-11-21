@@ -79,7 +79,7 @@ const CARDS = [
 function reducer(state, action) {
   switch (action.type) {
     case "FLIP":
-      const flippedCards = state.filter(card => card.flipped);
+      const flippedCards = state.filter(card => card.flipped && !card.matched);
       const matchedCard = flippedCards.find(
         card => card.color === action.payload.color
       );
@@ -89,21 +89,22 @@ function reducer(state, action) {
           if (card.id === matchedCard.id || card.id === action.payload.id) {
             return {
               ...card,
-              flipped: true
+              flipped: true,
+              matched: true
             };
           }
           return card;
         });
-      } else {
-        // return state.map(card => {
-        //   if (card.id === action.payload.id) {
-        //     return {
-        //       ...card,
-        //       flipped: false
-        //     };
-        //   }
-        //   return card;
-        // });
+      } else if (flippedCards.length > 0) {
+        return state.map(card => {
+          if (card.id === flippedCards[0].id) {
+            return {
+              ...card,
+              flipped: false
+            };
+          }
+          return card;
+        });
       }
 
       return state.map(card => {
@@ -130,29 +131,18 @@ function App() {
             className="card"
             style={{ backgroundColor: card.color }}
             onClick={() => {
-              dispatch({
-                type: "FLIP",
-                payload: { id: card.id, color: card.color }
-              });
+              if (!card.matched) {
+                dispatch({
+                  type: "FLIP",
+                  payload: { id: card.id, color: card.color }
+                });
+              }
             }}
           >
             {card.flipped && "flipped"}
           </div>
         );
       })}
-      {/* {Array.from({ length: 4 }, (_, x) => x).map(column => {
-        return (
-          <div key={column}>
-            {Array.from({ length: 3 }, (_, x) => x).map(row => {
-              return (
-                <div key={row} className="card">
-                  {row}
-                </div>
-              );
-            })}
-          </div>
-        );
-      })} */}
     </div>
   );
 }
